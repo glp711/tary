@@ -941,6 +941,120 @@ select {
   }
 }
 
+/* Mobile Background */
+.hero-banner-bg-mobile {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-size: cover;
+  background-position: center top;
+  z-index: 0;
+}
+
+/* Container for split layout */
+.hero-banner-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  z-index: 2;
+}
+
+/* Desktop Image - Hidden by default (mobile) */
+.hero-banner-image-desktop {
+  display: none;
+}
+
+/* Desktop Fix for Hero Banner - Split Layout */
+@media (min-width: 1024px) {
+  .hero-banner {
+    height: 600px;
+    max-height: 80vh;
+    background-color: var(--primary-blue-light);
+    /* Fallback/Side color */
+    overflow: visible;
+    /* Allow content to overflow if needed, or hidden */
+  }
+
+  .hero-banner-slide {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, var(--gray-900) 0%, var(--primary-blue) 100%);
+  }
+
+  /* Hide mobile bg and overlay on desktop if we want a clean split */
+  .hero-banner-bg-mobile,
+  .hero-banner-overlay {
+    opacity: 0.1;
+    /* Keep subtle or remove */
+    filter: blur(20px);
+  }
+
+  .hero-banner-container {
+    position: relative;
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0 2rem;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4rem;
+    align-items: center;
+  }
+
+  .hero-banner-content {
+    text-align: left;
+    padding: 0;
+    max-width: 100%;
+    animation: slideContentIn 0.8s ease 0.3s both;
+  }
+
+  .hero-banner-title {
+    font-size: 5rem;
+    line-height: 1.1;
+  }
+
+  .hero-banner-image-desktop {
+    display: block;
+    position: relative;
+    height: 500px;
+    width: 100%;
+    animation: fadeInRight 1s ease 0.5s both;
+  }
+
+  .hero-banner-image-desktop img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: var(--radius-2xl);
+    box-shadow: var(--shadow-2xl);
+    transform: perspective(1000px) rotateY(-5deg);
+    transition: transform 0.5s ease;
+  }
+
+  .hero-banner-slide:hover .hero-banner-image-desktop img {
+    transform: perspective(1000px) rotateY(0deg);
+  }
+
+  @keyframes fadeInRight {
+    from {
+      opacity: 0;
+      transform: translateX(50px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+}
+
 /* ===== HERO SECTION ===== */
 
 .hero {

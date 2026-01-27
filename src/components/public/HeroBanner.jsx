@@ -83,22 +83,35 @@ export default function HeroBanner({ onCategoryFilter }) {
                     <div
                         key={slide.id}
                         className={`hero-banner-slide ${index === currentSlide ? 'active' : ''}`}
-                        style={{ backgroundImage: `url(${slide.image})` }}
                     >
+                        {/* Mobile Background */}
+                        <div
+                            className="hero-banner-bg-mobile"
+                            style={{ backgroundImage: `url(${slide.image})` }}
+                        />
+
                         <div className="hero-banner-overlay" />
-                        <div className="hero-banner-content">
-                            <span className="hero-banner-subtitle">{slide.subtitle}</span>
-                            <h1 className="hero-banner-title">{slide.title}</h1>
-                            <p className="hero-banner-description">{slide.description}</p>
-                            <button
-                                className="hero-banner-cta"
-                                onClick={() => handleCTAClick(slide.categoryFilter)}
-                            >
-                                {slide.cta}
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                    <path d="M5 12h14M12 5l7 7-7 7" />
-                                </svg>
-                            </button>
+
+                        <div className="hero-banner-container">
+                            <div className="hero-banner-content">
+                                <span className="hero-banner-subtitle">{slide.subtitle}</span>
+                                <h1 className="hero-banner-title">{slide.title}</h1>
+                                <p className="hero-banner-description">{slide.description}</p>
+                                <button
+                                    className="hero-banner-cta"
+                                    onClick={() => handleCTAClick(slide.categoryFilter)}
+                                >
+                                    {slide.cta}
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                        <path d="M5 12h14M12 5l7 7-7 7" />
+                                    </svg>
+                                </button>
+                            </div>
+
+                            {/* Desktop Image */}
+                            <div className="hero-banner-image-desktop">
+                                <img src={slide.image} alt={slide.title} />
+                            </div>
                         </div>
                     </div>
                 ))}

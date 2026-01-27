@@ -31,18 +31,21 @@ export default function ImageUploader({ images, onChange }) {
         }
     };
 
-    const processFiles = async (files) => {
-        try {
-            const base64Images = await filesToBase64(files);
-            onChange([...images, ...base64Images]);
-        } catch (error) {
-            console.error('Error processing files:', error);
-        }
+    const processFiles = (files) => {
+        // Convert FileList to Array
+        const newFiles = Array.from(files);
+        onChange([...images, ...newFiles]);
     };
 
     const removeImage = (index) => {
         const newImages = images.filter((_, i) => i !== index);
         onChange(newImages);
+    };
+
+    // Helper to get preview URL
+    const getPreviewUrl = (image) => {
+        if (typeof image === 'string') return image;
+        return URL.createObjectURL(image);
     };
 
     return (
@@ -77,7 +80,7 @@ export default function ImageUploader({ images, onChange }) {
                 <div className="image-previews">
                     {images.map((img, index) => (
                         <div key={index} className="image-preview">
-                            <img src={img} alt={`Preview ${index + 1}`} />
+                            <img src={getPreviewUrl(img)} alt={`Preview ${index + 1}`} />
                             <button
                                 type="button"
                                 className="image-preview-remove"
