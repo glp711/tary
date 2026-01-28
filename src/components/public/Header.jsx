@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 
+import logo from '../../assets/logo.png';
+
 export default function Header() {
     const [scrolled, setScrolled] = useState(false);
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -40,7 +42,7 @@ export default function Header() {
                 <div className="container header-content">
                     <Link to="/" className="logo-container" onClick={handleNavClick}>
                         <div className="logo-wrapper">
-                            <img src="/logo.png" alt="Tary Moda Praia" className="logo" />
+                            <img src={logo} alt="Tary Moda Praia" className="logo" />
                         </div>
                         <div className="brand-text">
                             <span className="brand-name">Tary</span>

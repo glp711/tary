@@ -127,9 +127,9 @@ export const getFeaturedProducts = async () => {
 };
 
 // Upload image to Firebase Storage
-export const uploadImage = async (file) => {
+export const uploadImage = async (file, folder = 'products') => {
   try {
-    const fileName = `products/${Date.now()}_${file.name}`;
+    const fileName = `${folder}/${Date.now()}_${file.name}`;
     const storageRef = ref(storage, fileName);
     const snapshot = await uploadBytes(storageRef, file);
     const downloadURL = await getDownloadURL(snapshot.ref);
@@ -254,27 +254,271 @@ export const filesToBase64 = async (files) => {
   return Promise.all(promises);
 };
 
-// Categories list
-export const CATEGORIES = [
-  'Biquínis',
-  'Maiôs',
-  'Saídas de Praia',
-  'Moda Masculina',
-  'Acessórios'
-];
-
-// Collections list
-export const COLLECTIONS = [
+// Collections list (DEPRECATED: Use getCollectionsDB instead)
+/* export const COLLECTIONS = [
   'Verão 2024',
   'Tropical',
   'Elegance',
   'Essential',
   'Festas'
-];
+]; */
+export const COLLECTIONS = []; // Keep empty array until removed completely loops
+
+// Categories list (DEPRECATED: Use getCategoriesDB instead)
+/* export const CATEGORIES = [
+  'Biquínis',
+  'Maiôs',
+  'Saídas de Praia',
+  'Moda Masculina',
+  'Acessórios'
+]; */
+export const CATEGORIES = []; // Keep empty array for now
 
 // Get all unique collections from products
 export const getCollectionsFromProducts = async () => {
   const products = await getProducts();
   const collections = [...new Set(products.map(p => p.collection).filter(Boolean))];
   return collections;
+};
+
+// --- BANNERS CRUD ---
+const BANNERS_COLLECTION = 'banners';
+
+export const getBanners = async () => {
+  try {
+    const q = query(collection(db, BANNERS_COLLECTION), orderBy('order', 'asc'));
+    const querySnapshot = await getDocs(q);
+    const banners = [];
+    querySnapshot.forEach((doc) => {
+      banners.push({ id: doc.id, ...doc.data() });
+    });
+    return banners;
+  } catch (error) {
+    console.error('Error getting banners:', error);
+    return [];
+  }
+};
+
+export const addBanner = async (bannerData) => {
+  try {
+    const docRef = await addDoc(collection(db, BANNERS_COLLECTION), {
+      ...bannerData,
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp()
+    });
+    return { id: docRef.id, ...bannerData };
+  } catch (error) {
+    console.error('Error adding banner:', error);
+    throw error;
+  }
+};
+
+export const updateBanner = async (id, bannerData) => {
+  try {
+    const docRef = doc(db, BANNERS_COLLECTION, id);
+    await updateDoc(docRef, {
+      ...bannerData,
+      updatedAt: serverTimestamp()
+    });
+    return { id, ...bannerData };
+  } catch (error) {
+    console.error('Error updating banner:', error);
+    throw error;
+  }
+};
+
+export const deleteBanner = async (id) => {
+  try {
+    const docRef = doc(db, BANNERS_COLLECTION, id);
+    await deleteDoc(docRef);
+    return true;
+  } catch (error) {
+    console.error('Error deleting banner:', error);
+    throw error;
+  }
+};
+
+// --- STORIES CRUD ---
+const STORIES_COLLECTION = 'stories';
+
+export const getStories = async () => {
+  try {
+    const q = query(collection(db, STORIES_COLLECTION), orderBy('order', 'asc'));
+    const querySnapshot = await getDocs(q);
+    const stories = [];
+    querySnapshot.forEach((doc) => {
+      stories.push({ id: doc.id, ...doc.data() });
+    });
+    return stories;
+  } catch (error) {
+    console.error('Error getting stories:', error);
+    return [];
+  }
+};
+
+export const addStory = async (storyData) => {
+  try {
+    const docRef = await addDoc(collection(db, STORIES_COLLECTION), {
+      ...storyData,
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp()
+    });
+    return { id: docRef.id, ...storyData };
+  } catch (error) {
+    console.error('Error adding story:', error);
+    throw error;
+  }
+};
+
+export const updateStory = async (id, storyData) => {
+  try {
+    const docRef = doc(db, STORIES_COLLECTION, id);
+    await updateDoc(docRef, {
+      ...storyData,
+      updatedAt: serverTimestamp()
+    });
+    return { id, ...storyData };
+  } catch (error) {
+    console.error('Error updating story:', error);
+    throw error;
+  }
+};
+
+export const deleteStory = async (id) => {
+  try {
+    const docRef = doc(db, STORIES_COLLECTION, id);
+    await deleteDoc(docRef);
+    return true;
+  } catch (error) {
+    console.error('Error deleting story:', error);
+    throw error;
+  }
+};
+
+// --- CATEGORIES CRUD ---
+const CATEGORIES_COLLECTION_DB = 'categories'; // Renamed to avoid conflict with CATEGORIES constant
+
+export const getCategoriesDB = async () => {
+  try {
+    const q = query(collection(db, CATEGORIES_COLLECTION_DB), orderBy('order', 'asc'));
+    const querySnapshot = await getDocs(q);
+    const categories = [];
+    querySnapshot.forEach((doc) => {
+      categories.push({ id: doc.id, ...doc.data() });
+    });
+    return categories;
+  } catch (error) {
+    console.error('Error getting categories:', error);
+    return [];
+  }
+};
+
+export const addCategoryDB = async (categoryData) => {
+  try {
+    const docRef = await addDoc(collection(db, CATEGORIES_COLLECTION_DB), {
+      ...categoryData,
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp()
+    });
+    return { id: docRef.id, ...categoryData };
+  } catch (error) {
+    console.error('Error adding category:', error);
+    throw error;
+  }
+};
+
+export const updateCategoryDB = async (id, categoryData) => {
+  try {
+    const docRef = doc(db, CATEGORIES_COLLECTION_DB, id);
+    await updateDoc(docRef, {
+      ...categoryData,
+      updatedAt: serverTimestamp()
+    });
+    return { id, ...categoryData };
+  } catch (error) {
+    console.error('Error updating category:', error);
+    throw error;
+  }
+};
+
+export const deleteCategoryDB = async (id) => {
+  try {
+    const docRef = doc(db, CATEGORIES_COLLECTION_DB, id);
+    await deleteDoc(docRef);
+    return true;
+  } catch (error) {
+    console.error('Error deleting category:', error);
+    throw error;
+  }
+};
+
+// --- COLLECTIONS CRUD ---
+const COLLECTIONS_COLLECTION_DB = 'collections';
+
+export const getCollectionsDB = async () => {
+  try {
+    const q = query(collection(db, COLLECTIONS_COLLECTION_DB), orderBy('order', 'asc'));
+    const querySnapshot = await getDocs(q);
+    const collections = [];
+    querySnapshot.forEach((doc) => {
+      collections.push({ id: doc.id, ...doc.data() });
+    });
+    return collections;
+  } catch (error) {
+    console.error('Error getting collections:', error);
+    return [];
+  }
+};
+
+export const addCollectionDB = async (collectionData) => {
+  try {
+    const docRef = await addDoc(collection(db, COLLECTIONS_COLLECTION_DB), {
+      ...collectionData,
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp()
+    });
+    return { id: docRef.id, ...collectionData };
+  } catch (error) {
+    console.error('Error adding collection:', error);
+    throw error;
+  }
+};
+
+export const updateCollectionDB = async (id, collectionData) => {
+  try {
+    const docRef = doc(db, COLLECTIONS_COLLECTION_DB, id);
+    await updateDoc(docRef, {
+      ...collectionData,
+      updatedAt: serverTimestamp()
+    });
+    return { id, ...collectionData };
+  } catch (error) {
+    console.error('Error updating collection:', error);
+    throw error;
+  }
+};
+
+export const deleteCollectionDB = async (id) => {
+  try {
+    const docRef = doc(db, COLLECTIONS_COLLECTION_DB, id);
+    await deleteDoc(docRef);
+    return true;
+  } catch (error) {
+    console.error('Error deleting collection:', error);
+    throw error;
+  }
+};
+
+// --- HELPERS ---
+export const createSlug = (text) => {
+  return text
+    .toString()
+    .toLowerCase()
+    .normalize('NFD') // Split accented characters
+    .replace(/[\u0300-\u036f]/g, '') // Remove accents
+    .replace(/\s+/g, '-') // Replace spaces with -
+    .replace(/[^\w\-]+/g, '') // Remove all non-word chars
+    .replace(/\-\-+/g, '-') // Replace multiple - with single -
+    .replace(/^-+/, '') // Trim - from start of text
+    .replace(/-+$/, ''); // Trim - from end of text
 };

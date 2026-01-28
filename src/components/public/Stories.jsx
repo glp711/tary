@@ -1,85 +1,52 @@
-import { useState } from 'react';
-
-// Sample stories data for 3 collection stories
-const storiesData = [
-    {
-        id: 1,
-        title: 'Plus Size',
-        subtitle: 'Beleza em Todos os Tamanhos',
-        coverImage: '/plussize-2.jpg',
-        categoryFilter: 'plussize',
-        images: [
-            '/plussize-2.jpg',
-            '/plussize-3.jpg',
-            '/plussize-1.jpg',
-        ]
-    },
-    {
-        id: 2,
-        title: 'Maiôs',
-        subtitle: 'Elegância e Conforto',
-        coverImage: '/maios-1.jpg',
-        categoryFilter: 'maios',
-        images: [
-            '/maios-1.jpg',
-            '/maios-2.png',
-            '/maios-3.jpg',
-        ]
-    },
-    {
-        id: 3,
-        title: 'Biquínis',
-        subtitle: 'Estilo e Versatilidade',
-        coverImage: '/bikinis-1.jpg',
-        categoryFilter: 'bikinis',
-        images: [
-            '/bikinis-1.jpg',
-            '/bikinis-2.png',
-            '/bikinis-3.png',
-        ]
-    },
-    {
-        id: 4,
-        title: 'Verão 2024',
-        subtitle: 'Nova Coleção',
-        coverImage: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=400&h=600&fit=crop',
-        images: [
-            'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&h=1200&fit=crop',
-            'https://images.unsplash.com/photo-1519046904884-53103b34b206?w=800&h=1200&fit=crop',
-            'https://images.unsplash.com/photo-1520454974749-611b7248ffdb?w=800&h=1200&fit=crop',
-            'https://images.unsplash.com/photo-1506929562872-bb421503ef21?w=800&h=1200&fit=crop',
-        ]
-    },
-    {
-        id: 5,
-        title: 'Tropical',
-        subtitle: 'Estampas Vibrantes',
-        coverImage: 'https://images.unsplash.com/photo-1519046904884-53103b34b206?w=400&h=600&fit=crop',
-        images: [
-            'https://images.unsplash.com/photo-1519046904884-53103b34b206?w=800&h=1200&fit=crop',
-            'https://images.unsplash.com/photo-1473116763249-2faaef81ccda?w=800&h=1200&fit=crop',
-            'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&h=1200&fit=crop',
-        ]
-    },
-    {
-        id: 6,
-        title: 'Elegance',
-        subtitle: 'Sofisticação na Praia',
-        coverImage: 'https://images.unsplash.com/photo-1506929562872-bb421503ef21?w=400&h=600&fit=crop',
-        images: [
-            'https://images.unsplash.com/photo-1506929562872-bb421503ef21?w=800&h=1200&fit=crop',
-            'https://images.unsplash.com/photo-1520454974749-611b7248ffdb?w=800&h=1200&fit=crop',
-            'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&h=1200&fit=crop',
-            'https://images.unsplash.com/photo-1519046904884-53103b34b206?w=800&h=1200&fit=crop',
-            'https://images.unsplash.com/photo-1473116763249-2faaef81ccda?w=800&h=1200&fit=crop',
-        ]
-    }
-];
-
+import { useState, useEffect } from 'react';
+import { getStories } from '../../utils/storage';
 
 export default function Stories({ onCategoryFilter }) {
     const [activeStory, setActiveStory] = useState(null);
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
+    const [stories, setStories] = useState([]);
+    const [isLoading, setIsLoading] = useState(true);
+
+    useEffect(() => {
+        loadStories();
+    }, []);
+
+    const loadStories = async () => {
+        try {
+            const data = await getStories();
+            // Filter active stories and sort by order
+            const activeStories = data
+                .filter(s => s.active)
+                .sort((a, b) => a.order - b.order)
+                .map(story => ({
+                    ...story,
+                    // Adapt for viewer: ensure images array exists. 
+                    // Use 'images' array if available, otherwise fallback to wrapping 'imageUrl'
+                    images: story.images && story.images.length > 0 ? story.images : [story.imageUrl],
+                    coverImage: story.images && story.images.length > 0 ? story.images[0] : story.imageUrl,
+                    // If link is present, treat it as category filter if it matches known categories, 
+                    // or just ignored for now as the viewer expects specific logic.
+                    // For now, let's map 'link' to 'categoryFilter' if it helps, 
+                    // but the simple link button in viewer works better with direct navigation.
+                    // We'll adjust the viewer button to use the link.
+                }));
+            setStories(activeStories);
+        } catch (error) {
+            console.error('Error loading stories:', error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    // Preload images when story opens
+    useEffect(() => {
+        if (activeStory && activeStory.images) {
+            activeStory.images.forEach(src => {
+                const img = new Image();
+                img.src = src;
+            });
+        }
+    }, [activeStory]);
 
     const openStory = (story) => {
         setActiveStory(story);
@@ -119,12 +86,16 @@ export default function Stories({ onCategoryFilter }) {
         }
     };
 
+    if (!isLoading && stories.length === 0) {
+        return null; // Don't show section if no stories
+    }
+
     return (
         <>
             <section className="stories-bar" id="stories">
                 <div className="container">
                     <div className="stories-container">
-                        {storiesData.map(story => (
+                        {stories.map(story => (
                             <div
                                 key={story.id}
                                 className="story-preview"
@@ -135,11 +106,12 @@ export default function Stories({ onCategoryFilter }) {
                                         src={story.coverImage}
                                         alt={story.title}
                                         className="story-preview-image"
+                                        loading="lazy"
                                     />
                                 </div>
                                 <div className="story-preview-info">
                                     <span className="story-preview-title">{story.title}</span>
-                                    <span className="story-preview-subtitle">{story.subtitle}</span>
+                                    {/* Subtitle is not in StoryForm, using title as main info */}
                                 </div>
                             </div>
                         ))}
@@ -172,7 +144,6 @@ export default function Stories({ onCategoryFilter }) {
                                 </div>
                                 <div className="story-meta">
                                     <span className="story-title">{activeStory.title}</span>
-                                    <span className="story-subtitle">{activeStory.subtitle}</span>
                                 </div>
                             </div>
                             <button className="story-close" onClick={closeStory}>
@@ -186,7 +157,7 @@ export default function Stories({ onCategoryFilter }) {
                         <div className="story-content" onClick={handleStoryClick}>
                             <img
                                 src={activeStory.images[currentImageIndex]}
-                                alt={`${activeStory.title} - ${currentImageIndex + 1}`}
+                                alt={`${activeStory.title}`}
                                 className="story-image"
                             />
                             {/* Navigation hint areas */}
@@ -194,42 +165,45 @@ export default function Stories({ onCategoryFilter }) {
                             <div className="story-nav-hint story-nav-next" />
                         </div>
 
-                        {/* Category Action Button - Centered at bottom */}
-                        {activeStory.categoryFilter && onCategoryFilter && (
+                        {/* Action Link Button */}
+                        {activeStory.link && (
                             <div className="story-action-container" onClick={(e) => e.stopPropagation()}>
-                                <button
+                                <a
+                                    href={activeStory.link}
                                     className="story-action-btn"
-                                    onClick={() => {
-                                        onCategoryFilter(activeStory.categoryFilter);
-                                        closeStory();
-                                    }}
+                                    onClick={closeStory}
+                                    style={{ textDecoration: 'none' }}
                                 >
-                                    Ver Coleção {activeStory.title}
+                                    Ver Mais
                                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                                         <path d="M5 12h14M12 5l7 7-7 7" />
                                     </svg>
-                                </button>
-                                <span className="story-swipe-hint">Toque para navegar</span>
+                                </a>
+                                <span className="story-swipe-hint">Toque para ver</span>
                             </div>
                         )}
 
-                        {/* Navigation buttons (for desktop) */}
-                        <button
-                            className={`story-nav-btn story-prev-btn ${currentImageIndex === 0 ? 'hidden' : ''}`}
-                            onClick={(e) => { e.stopPropagation(); prevImage(); }}
-                        >
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                <path d="M15 18l-6-6 6-6" />
-                            </svg>
-                        </button>
-                        <button
-                            className="story-nav-btn story-next-btn"
-                            onClick={(e) => { e.stopPropagation(); nextImage(); }}
-                        >
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                <path d="M9 18l6-6-6-6" />
-                            </svg>
-                        </button>
+                        {/* Navigation buttons (desktop) - only if multiple images (unlikely with current admin but future proof) */}
+                        {activeStory.images.length > 1 && (
+                            <>
+                                <button
+                                    className={`story-nav-btn story-prev-btn ${currentImageIndex === 0 ? 'hidden' : ''}`}
+                                    onClick={(e) => { e.stopPropagation(); prevImage(); }}
+                                >
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                        <path d="M15 18l-6-6 6-6" />
+                                    </svg>
+                                </button>
+                                <button
+                                    className="story-nav-btn story-next-btn"
+                                    onClick={(e) => { e.stopPropagation(); nextImage(); }}
+                                >
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                        <path d="M9 18l6-6-6-6" />
+                                    </svg>
+                                </button>
+                            </>
+                        )}
                     </div>
                 </div>
             )}

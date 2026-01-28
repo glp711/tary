@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
 import ImageUploader from './ImageUploader';
-import { CATEGORIES, COLLECTIONS } from '../../utils/storage';
+import { getCategoriesDB, getCollectionsDB } from '../../utils/storage';
 
 const initialFormState = {
     name: '',
-    category: 'Biquínis',
-    collection: 'Verão 2024',
+    category: '', // Dynamic default
+    collection: '', // Dynamic default
     price: '',
     description: '',
     images: [],
@@ -14,6 +14,7 @@ const initialFormState = {
     plusSize: false
 };
 
+// ... keep formatPrice and parsePrice helpers ...
 // Format price as Brazilian currency (R$ 100,00)
 // Input treated as centavos: 18990 -> R$ 189,90
 const formatPrice = (value) => {
@@ -50,13 +51,37 @@ const parsePrice = (priceString) => {
 
 export default function ProductForm({ isOpen, product, onSave, onClose }) {
     const [formData, setFormData] = useState(initialFormState);
+    const [categoriesList, setCategoriesList] = useState([]);
+    const [collectionsList, setCollectionsList] = useState([]);
+
+    useEffect(() => {
+        const loadOptions = async () => {
+            const cats = await getCategoriesDB();
+            const cols = await getCollectionsDB();
+
+            // Only active ones should be selectable for new products usually, 
+            // but for editing existing products we might want to keep the current value even if inactive.
+            // For now let's just show all or filter active. Let's show all for simplicity in Admin.
+            setCategoriesList(cats);
+            setCollectionsList(cols);
+
+            // Set defaults if creating new product and lists loaded
+            if (!product && cats.length > 0 && !formData.category) {
+                setFormData(prev => ({ ...prev, category: cats[0].name }));
+            }
+            if (!product && cols.length > 0 && !formData.collection) {
+                setFormData(prev => ({ ...prev, collection: cols[0].name }));
+            }
+        };
+        loadOptions();
+    }, [isOpen]); // Reload when form opens to get latest
 
     useEffect(() => {
         if (product) {
             setFormData({
                 name: product.name || '',
-                category: product.category || 'Biquínis',
-                collection: product.collection || 'Verão 2024',
+                category: product.category || '',
+                collection: product.collection || '',
                 price: product.price || '',
                 description: product.description || '',
                 images: product.images || [],
@@ -65,9 +90,14 @@ export default function ProductForm({ isOpen, product, onSave, onClose }) {
                 plusSize: product.plusSize || false
             });
         } else {
-            setFormData(initialFormState);
+            // Reset to partial initial, but keep loaded categories if available
+            setFormData(prev => ({
+                ...initialFormState,
+                category: categoriesList.length > 0 ? categoriesList[0].name : '',
+                collection: collectionsList.length > 0 ? collectionsList[0].name : ''
+            }));
         }
-    }, [product, isOpen]);
+    }, [product, isOpen, categoriesList, collectionsList]);
 
     const handleChange = (e) => {
         const { name, value, type, checked } = e.target;
@@ -103,7 +133,7 @@ export default function ProductForm({ isOpen, product, onSave, onClose }) {
         }
 
         onSave(formData);
-        setFormData(initialFormState);
+        // Don't full reset here because we want to keep categories loaded
     };
 
     const handleOverlayClick = (e) => {
@@ -152,8 +182,9 @@ export default function ProductForm({ isOpen, product, onSave, onClose }) {
                                     value={formData.category}
                                     onChange={handleChange}
                                 >
-                                    {CATEGORIES.map(cat => (
-                                        <option key={cat} value={cat}>{cat}</option>
+                                    <option value="">Selecione...</option>
+                                    {categoriesList.map(cat => (
+                                        <option key={cat.id} value={cat.name}>{cat.name}</option>
                                     ))}
                                 </select>
                             </div>
@@ -167,8 +198,9 @@ export default function ProductForm({ isOpen, product, onSave, onClose }) {
                                     value={formData.collection}
                                     onChange={handleChange}
                                 >
-                                    {COLLECTIONS.map(col => (
-                                        <option key={col} value={col}>{col}</option>
+                                    <option value="">Selecione...</option>
+                                    {collectionsList.map(col => (
+                                        <option key={col.id} value={col.name}>{col.name}</option>
                                     ))}
                                 </select>
                             </div>

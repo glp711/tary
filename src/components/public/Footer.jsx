@@ -6,7 +6,29 @@ export default function Footer() {
             <div className="container">
                 <div className="footer-content">
                     <div>
-                        <img src="/logo.png" alt="Tary Moda Praia" className="footer-logo" />
+                        <div style={{
+                            marginBottom: '1.5rem'
+                        }}>
+                            <h3 style={{
+                                fontFamily: 'Playfair Display, serif',
+                                fontSize: '2.5rem',
+                                fontWeight: '700',
+                                color: 'white',
+                                marginBottom: '0.25rem',
+                                letterSpacing: '1px'
+                            }}>
+                                TARY
+                            </h3>
+                            <p style={{
+                                color: 'rgba(255, 255, 255, 0.7)',
+                                fontSize: '0.85rem',
+                                letterSpacing: '3px',
+                                fontWeight: '600',
+                                margin: 0
+                            }}>
+                                MODA PRAIA
+                            </p>
+                        </div>
                         <p className="footer-description">
                             Moda praia com estilo, qualidade e conforto. Encontre a peça perfeita para brilhar na praia ou piscina.
                         </p>
@@ -51,7 +73,7 @@ export default function Footer() {
                 </div>
 
                 <div className="footer-bottom">
-                    <p>© 2024 Tary Moda Praia. Todos os direitos reservados.</p>
+                    <p>© 2026 Tary Moda Praia. Todos os direitos reservados.</p>
                 </div>
             </div>
         </footer>

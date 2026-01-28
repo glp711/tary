@@ -1,157 +1,148 @@
-import { useState, useEffect, useCallback } from 'react';
-
-const slides = [
-    {
-        id: 1,
-        image: '/hero-bikini.jpg',
-        title: 'Biquínis',
-        subtitle: 'Estilo e Versatilidade',
-        description: 'Descubra nossa coleção exclusiva de biquínis para todos os estilos',
-        cta: 'Ver Biquínis',
-        categoryFilter: 'bikinis'
-    },
-    {
-        id: 2,
-        image: '/hero-maio.jpg',
-        title: 'Maiôs',
-        subtitle: 'Elegância e Conforto',
-        description: 'Peças sofisticadas que valorizam sua beleza natural',
-        cta: 'Ver Maiôs',
-        categoryFilter: 'maios'
-    },
-    {
-        id: 3,
-        image: '/hero-masculino.jpg',
-        title: 'Moda Masculina',
-        subtitle: 'Estilo para Ele',
-        description: 'Sungas e bermudas com design moderno e confortável',
-        cta: 'Ver Masculino',
-        categoryFilter: 'masculino'
-    },
-    {
-        id: 4,
-        image: '/hero-plussize.jpg',
-        title: 'Plus Size',
-        subtitle: 'Beleza em Todos os Tamanhos',
-        description: 'Moda praia inclusiva com muito estilo e qualidade',
-        cta: 'Ver Plus Size',
-        categoryFilter: 'plussize'
-    }
-];
+import { useState, useEffect } from 'react';
+import { getBanners } from '../../utils/storage';
 
 export default function HeroBanner({ onCategoryFilter }) {
+    const [banners, setBanners] = useState([]);
     const [currentSlide, setCurrentSlide] = useState(0);
-    const [isPaused, setIsPaused] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
 
-    const nextSlide = useCallback(() => {
-        setCurrentSlide((prev) => (prev + 1) % slides.length);
-    }, []);
-
-    const prevSlide = useCallback(() => {
-        setCurrentSlide((prev) => (prev - 1 + slides.length) % slides.length);
-    }, []);
-
-    const goToSlide = (index) => {
-        setCurrentSlide(index);
-    };
-
-    // Autoplay
     useEffect(() => {
-        if (isPaused) return;
+        loadBanners();
+    }, []);
+
+    useEffect(() => {
+        if (banners.length <= 1) return;
 
         const interval = setInterval(() => {
-            nextSlide();
-        }, 5000); // Change slide every 5 seconds
+            setCurrentSlide(curr => (curr + 1) % banners.length);
+        }, 5000);
 
         return () => clearInterval(interval);
-    }, [isPaused, nextSlide]);
+    }, [banners.length]);
 
-    const handleCTAClick = (categoryFilter) => {
-        if (onCategoryFilter) {
-            onCategoryFilter(categoryFilter);
+    const loadBanners = async () => {
+        try {
+            const data = await getBanners();
+            const activeBanners = data.filter(b => b.active).sort((a, b) => a.order - b.order);
+            setBanners(activeBanners);
+        } catch (error) {
+            console.error('Error loading banners:', error);
+        } finally {
+            setIsLoading(false);
         }
     };
 
+    const nextSlide = () => {
+        setCurrentSlide(curr => (curr + 1) % banners.length);
+    };
+
+    const prevSlide = () => {
+        setCurrentSlide(curr => (curr - 1 + banners.length) % banners.length);
+    };
+
+    if (!isLoading && banners.length === 0) {
+        return (
+            <section className="hero">
+                <div className="container hero-content">
+                    <div className="hero-text">
+                        <h1>
+                            Moda Praia com<br />
+                            <span style={{ color: 'var(--accent-blue)' }}>Estilo e Elegância</span>
+                        </h1>
+                        <p>
+                            Cadastre seus banners no Painel Admin para que eles apareçam aqui.
+                        </p>
+                    </div>
+                </div>
+            </section>
+        );
+    }
+
     return (
-        <section
-            className="hero-banner"
-            onMouseEnter={() => setIsPaused(true)}
-            onMouseLeave={() => setIsPaused(false)}
-        >
+        <section className="hero-banner hero-banner-split-layout">
             <div className="hero-banner-slides">
-                {slides.map((slide, index) => (
+                {banners.map((banner, index) => (
                     <div
-                        key={slide.id}
+                        key={banner.id}
                         className={`hero-banner-slide ${index === currentSlide ? 'active' : ''}`}
+                        style={{ backgroundColor: 'var(--primary-blue)' }} // Force blue bg for desktop split
                     >
-                        {/* Mobile Background */}
+                        {/* Mobile Background - Only visible on mobile via CSS */}
                         <div
                             className="hero-banner-bg-mobile"
-                            style={{ backgroundImage: `url(${slide.image})` }}
+                            style={{
+                                backgroundImage: `url(${banner.imageUrl})`,
+                                position: 'absolute',
+                                top: 0,
+                                left: 0,
+                                width: '100%',
+                                height: '100%',
+                                backgroundSize: 'cover',
+                                backgroundPosition: 'center',
+                                zIndex: 0
+                            }}
                         />
 
-                        <div className="hero-banner-overlay" />
+                        {/* Desktop Overlay - Optional, mainly for mobile readability if needed */}
+                        <div className="hero-banner-overlay"></div>
 
-                        <div className="hero-banner-container">
+                        <div className="hero-banner-split-container hero-banner-container">
                             <div className="hero-banner-content">
-                                <span className="hero-banner-subtitle">{slide.subtitle}</span>
-                                <h1 className="hero-banner-title">{slide.title}</h1>
-                                <p className="hero-banner-description">{slide.description}</p>
-                                <button
-                                    className="hero-banner-cta"
-                                    onClick={() => handleCTAClick(slide.categoryFilter)}
-                                >
-                                    {slide.cta}
+                                {banner.subtitle && (
+                                    <span className="hero-banner-subtitle">
+                                        {banner.subtitle}
+                                    </span>
+                                )}
+                                <h2 className="hero-banner-title">{banner.title}</h2>
+                                {banner.description && (
+                                    <p className="hero-banner-description">{banner.description}</p>
+                                )}
+                                <a href={banner.link || '#produtos'} className="hero-banner-cta">
+                                    {banner.buttonText || 'Ver Coleção'}
                                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                                         <path d="M5 12h14M12 5l7 7-7 7" />
                                     </svg>
-                                </button>
+                                </a>
                             </div>
 
-                            {/* Desktop Image */}
-                            <div className="hero-banner-image-desktop">
-                                <img src={slide.image} alt={slide.title} />
+                            {/* Desktop Featured Image - Hidden on mobile via CSS */}
+                            <div className="hero-banner-image-wrapper">
+                                <img
+                                    src={banner.imageUrl}
+                                    alt={banner.title}
+                                    className="hero-banner-featured-image"
+                                    loading={index === 0 ? "eager" : "lazy"}
+                                />
                             </div>
                         </div>
                     </div>
                 ))}
             </div>
 
-            {/* Navigation Arrows */}
-            <button className="hero-banner-arrow hero-banner-prev" onClick={prevSlide}>
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M15 18l-6-6 6-6" />
-                </svg>
-            </button>
-            <button className="hero-banner-arrow hero-banner-next" onClick={nextSlide}>
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M9 18l6-6-6-6" />
-                </svg>
-            </button>
+            {banners.length > 1 && (
+                <>
+                    <button className="hero-banner-arrow hero-banner-prev" onClick={prevSlide}>
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <path d="M15 19l-7-7 7-7" />
+                        </svg>
+                    </button>
+                    <button className="hero-banner-arrow hero-banner-next" onClick={nextSlide}>
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <path d="M9 5l7 7-7 7" />
+                        </svg>
+                    </button>
 
-            {/* Dots Navigation */}
-            <div className="hero-banner-dots">
-                {slides.map((_, index) => (
-                    <button
-                        key={index}
-                        className={`hero-banner-dot ${index === currentSlide ? 'active' : ''}`}
-                        onClick={() => goToSlide(index)}
-                        aria-label={`Go to slide ${index + 1}`}
-                    />
-                ))}
-            </div>
-
-            {/* Progress Bar */}
-            <div className="hero-banner-progress">
-                <div
-                    className="hero-banner-progress-bar"
-                    style={{
-                        animationPlayState: isPaused ? 'paused' : 'running',
-                        animationDuration: '5s'
-                    }}
-                    key={currentSlide}
-                />
-            </div>
+                    <div className="hero-banner-dots">
+                        {banners.map((_, index) => (
+                            <button
+                                key={index}
+                                className={`hero-banner-dot ${index === currentSlide ? 'active' : ''}`}
+                                onClick={() => setCurrentSlide(index)}
+                            />
+                        ))}
+                    </div>
+                </>
+            )}
         </section>
     );
 }

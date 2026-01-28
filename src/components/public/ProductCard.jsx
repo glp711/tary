@@ -41,6 +41,7 @@ export default function ProductCard({ product, onClick }) {
                     src={images[currentImage]}
                     alt={product.name}
                     className="product-image"
+                    loading="lazy"
                 />
 
                 <div className="product-badges">
