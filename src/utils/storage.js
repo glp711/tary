@@ -126,12 +126,78 @@ export const getFeaturedProducts = async () => {
   return products.filter(p => p.featured);
 };
 
+// Helper to compress image
+const compressImage = (file) => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = (event) => {
+      const img = new Image();
+      img.src = event.target.result;
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let width = img.width;
+        let height = img.height;
+
+        // Max dimensions
+        const MAX_WIDTH = 1920;
+        const MAX_HEIGHT = 1920;
+
+        if (width > height) {
+          if (width > MAX_WIDTH) {
+            height *= MAX_WIDTH / width;
+            width = MAX_WIDTH;
+          }
+        } else {
+          if (height > MAX_HEIGHT) {
+            width *= MAX_HEIGHT / height;
+            height = MAX_HEIGHT;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+
+        canvas.toBlob((blob) => {
+          if (blob) {
+            resolve(blob);
+          } else {
+            reject(new Error('Canvas to Blob failed'));
+          }
+        }, 'image/jpeg', 0.8); // 80% quality JPEG
+      };
+      img.onerror = (err) => reject(err);
+    };
+    reader.onerror = (err) => reject(err);
+  });
+};
+
 // Upload image to Firebase Storage
 export const uploadImage = async (file, folder = 'products') => {
   try {
-    const fileName = `${folder}/${Date.now()}_${file.name}`;
+    // Compress if it's an image
+    let fileToUpload = file;
+    if (file.type.startsWith('image/')) {
+      try {
+        console.log('Compressing image...', file.size);
+        const compressedBlob = await compressImage(file);
+        console.log('Compressed size:', compressedBlob.size);
+        // Limit to 2MB max after compression for safety
+        if (compressedBlob.size > 2 * 1024 * 1024) {
+          // If still too big, reject or try harder? For now, warn but try upload.
+          console.warn("Image still large after compression:", compressedBlob.size);
+        }
+        fileToUpload = compressedBlob;
+      } catch (compError) {
+        console.error("Compression failed, using original:", compError);
+      }
+    }
+
+    const fileName = `${folder}/${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`; // Sanitize name
     const storageRef = ref(storage, fileName);
-    const snapshot = await uploadBytes(storageRef, file);
+    const snapshot = await uploadBytes(storageRef, fileToUpload);
     const downloadURL = await getDownloadURL(snapshot.ref);
     return downloadURL;
   } catch (error) {
