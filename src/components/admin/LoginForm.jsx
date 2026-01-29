@@ -14,7 +14,7 @@ export default function LoginForm({ onSuccess }) {
         // Small delay for UX
         await new Promise(resolve => setTimeout(resolve, 500));
 
-        if (login(password)) {
+        if (await login(password)) {
             onSuccess();
         } else {
             setError('Senha incorreta');
