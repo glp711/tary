@@ -86,6 +86,17 @@ export const updateProduct = async (id, productData) => {
 // Delete product
 export const deleteProduct = async (id) => {
   try {
+    // Get product data first to delete images
+    const product = await getProduct(id);
+    if (product && product.images && product.images.length > 0) {
+      for (const imageUrl of product.images) {
+        // Check if it's a firebase storage url
+        if (imageUrl.includes('firebasestorage')) {
+          await deleteImage(imageUrl);
+        }
+      }
+    }
+
     const docRef = doc(db, PRODUCTS_COLLECTION, id);
     await deleteDoc(docRef);
     return true;
@@ -395,7 +406,16 @@ export const updateBanner = async (id, bannerData) => {
 
 export const deleteBanner = async (id) => {
   try {
+    // Get banner data to delete image
     const docRef = doc(db, BANNERS_COLLECTION, id);
+    const docSnap = await getDoc(docRef);
+    if (docSnap.exists()) {
+      const banner = docSnap.data();
+      if (banner.imageUrl && banner.imageUrl.includes('firebasestorage')) {
+        await deleteImage(banner.imageUrl);
+      }
+    }
+
     await deleteDoc(docRef);
     return true;
   } catch (error) {
@@ -453,6 +473,24 @@ export const updateStory = async (id, storyData) => {
 export const deleteStory = async (id) => {
   try {
     const docRef = doc(db, STORIES_COLLECTION, id);
+    const docSnap = await getDoc(docRef);
+
+    if (docSnap.exists()) {
+      const story = docSnap.data();
+      // Delete cover image
+      if (story.imageUrl && story.imageUrl.includes('firebasestorage')) {
+        await deleteImage(story.imageUrl);
+      }
+      // Delete multiple images if present
+      if (story.images && story.images.length > 0) {
+        for (const img of story.images) {
+          if (img && img.includes('firebasestorage')) {
+            await deleteImage(img);
+          }
+        }
+      }
+    }
+
     await deleteDoc(docRef);
     return true;
   } catch (error) {
@@ -507,9 +545,20 @@ export const updateCategoryDB = async (id, categoryData) => {
   }
 };
 
+
+
 export const deleteCategoryDB = async (id) => {
   try {
     const docRef = doc(db, CATEGORIES_COLLECTION_DB, id);
+    const docSnap = await getDoc(docRef);
+
+    if (docSnap.exists()) {
+      const category = docSnap.data();
+      if (category.imageUrl && category.imageUrl.includes('firebasestorage')) {
+        await deleteImage(category.imageUrl);
+      }
+    }
+
     await deleteDoc(docRef);
     return true;
   } catch (error) {
@@ -567,6 +616,15 @@ export const updateCollectionDB = async (id, collectionData) => {
 export const deleteCollectionDB = async (id) => {
   try {
     const docRef = doc(db, COLLECTIONS_COLLECTION_DB, id);
+    const docSnap = await getDoc(docRef);
+
+    if (docSnap.exists()) {
+      const collectionData = docSnap.data();
+      if (collectionData.imageUrl && collectionData.imageUrl.includes('firebasestorage')) {
+        await deleteImage(collectionData.imageUrl);
+      }
+    }
+
     await deleteDoc(docRef);
     return true;
   } catch (error) {
