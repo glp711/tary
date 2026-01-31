@@ -523,30 +523,35 @@ export default function Admin() {
                 product={editingItem}
                 onSave={handleSave}
                 onClose={handleCloseForm}
+                isSaving={isSaving}
             />
             <BannerForm
                 isOpen={isFormOpen && activeTab === 'banners'}
                 banner={editingItem}
                 onSave={handleSave}
                 onClose={handleCloseForm}
+                isSaving={isSaving}
             />
             <StoryForm
                 isOpen={isFormOpen && activeTab === 'stories'}
                 story={editingItem}
                 onSave={handleSave}
                 onClose={handleCloseForm}
+                isSaving={isSaving}
             />
             <CategoryForm
                 isOpen={isFormOpen && activeTab === 'categories'}
                 category={editingItem}
                 onSave={handleSave}
                 onClose={handleCloseForm}
+                isSaving={isSaving}
             />
             <CollectionForm
                 isOpen={isFormOpen && activeTab === 'collections'}
                 collection={editingItem}
                 onSave={handleSave}
                 onClose={handleCloseForm}
+                isSaving={isSaving}
             />
 
             <ConfirmDialog

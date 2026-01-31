@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 // Sample bikini image
 const PLACEHOLDER_IMAGE = '/sample-bikini.jpg';
@@ -11,6 +11,16 @@ export default function ProductCard({ product, onClick }) {
         : [PLACEHOLDER_IMAGE];
 
     const hasMultipleImages = images.length > 1;
+
+    // Preload images for smoother navigation
+    useEffect(() => {
+        if (hasMultipleImages) {
+            images.forEach(src => {
+                const img = new Image();
+                img.src = src;
+            });
+        }
+    }, [images, hasMultipleImages]);
 
     const handlePrevImage = (e) => {
         e.stopPropagation();
@@ -31,6 +41,7 @@ export default function ProductCard({ product, onClick }) {
         >
             <div className="product-image-container">
                 <img
+                    key={currentImage} // Force re-render on image change
                     src={images[currentImage]}
                     alt={product.name}
                     className="product-image"
