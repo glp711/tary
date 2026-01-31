@@ -168,17 +168,46 @@ export default function Stories({ onCategoryFilter }) {
                         {/* Action Link Button */}
                         {activeStory.link && (
                             <div className="story-action-container" onClick={(e) => e.stopPropagation()}>
-                                <a
-                                    href={activeStory.link}
-                                    className="story-action-btn"
-                                    onClick={closeStory}
-                                    style={{ textDecoration: 'none' }}
-                                >
-                                    Ver Mais
-                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                        <path d="M5 12h14M12 5l7 7-7 7" />
-                                    </svg>
-                                </a>
+                                {(() => {
+                                    const link = activeStory.link || '';
+                                    const isExternalLink = link.startsWith('http');
+                                    const standardAnchors = ['#produtos', '#novidades', '#colecoes', '#destaques', '#contato'];
+                                    const isStandardAnchor = standardAnchors.includes(link.toLowerCase());
+                                    const categoryName = link.startsWith('#') && !isStandardAnchor
+                                        ? link.substring(1)
+                                        : (!isExternalLink && !link.startsWith('#') ? link : null);
+
+                                    if (categoryName && onCategoryFilter) {
+                                        return (
+                                            <button
+                                                className="story-action-btn"
+                                                onClick={() => {
+                                                    onCategoryFilter(categoryName);
+                                                    closeStory();
+                                                }}
+                                                style={{ textDecoration: 'none' }}
+                                            >
+                                                Ver Mais
+                                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                                    <path d="M5 12h14M12 5l7 7-7 7" />
+                                                </svg>
+                                            </button>
+                                        );
+                                    }
+                                    return (
+                                        <a
+                                            href={link}
+                                            className="story-action-btn"
+                                            onClick={closeStory}
+                                            style={{ textDecoration: 'none' }}
+                                        >
+                                            Ver Mais
+                                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                                <path d="M5 12h14M12 5l7 7-7 7" />
+                                            </svg>
+                                        </a>
+                                    );
+                                })()}
                                 <span className="story-swipe-hint">Toque para ver</span>
                             </div>
                         )}

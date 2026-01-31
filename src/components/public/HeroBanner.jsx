@@ -97,12 +97,40 @@ export default function HeroBanner({ onCategoryFilter }) {
                                 {banner.description && (
                                     <p className="hero-banner-description">{banner.description}</p>
                                 )}
-                                <a href={banner.link || '#produtos'} className="hero-banner-cta">
-                                    {banner.buttonText || 'Ver Coleção'}
-                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                        <path d="M5 12h14M12 5l7 7-7 7" />
-                                    </svg>
-                                </a>
+                                {(() => {
+                                    // Determine if link is a category filter or regular link
+                                    const link = banner.link || '';
+                                    const isExternalLink = link.startsWith('http');
+                                    // Standard scroll anchors that should NOT trigger category filter
+                                    const standardAnchors = ['#produtos', '#novidades', '#colecoes', '#destaques', '#contato'];
+                                    const isStandardAnchor = standardAnchors.includes(link.toLowerCase());
+                                    // If it starts with # but is NOT a standard anchor, treat as category (strip #)
+                                    const categoryName = link.startsWith('#') && !isStandardAnchor
+                                        ? link.substring(1)
+                                        : (!isExternalLink && !link.startsWith('#') ? link : null);
+
+                                    if (categoryName && onCategoryFilter) {
+                                        return (
+                                            <button
+                                                className="hero-banner-cta"
+                                                onClick={() => onCategoryFilter(categoryName)}
+                                            >
+                                                {banner.buttonText || 'Ver Coleção'}
+                                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                                    <path d="M5 12h14M12 5l7 7-7 7" />
+                                                </svg>
+                                            </button>
+                                        );
+                                    }
+                                    return (
+                                        <a href={link || '#produtos'} className="hero-banner-cta">
+                                            {banner.buttonText || 'Ver Coleção'}
+                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                                <path d="M5 12h14M12 5l7 7-7 7" />
+                                            </svg>
+                                        </a>
+                                    );
+                                })()}
                             </div>
 
                             {/* Desktop Featured Image - Hidden on mobile via CSS */}

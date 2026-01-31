@@ -28,6 +28,8 @@ export default function ImageUploader({ images, onChange }) {
         const files = e.target.files;
         if (files.length > 0) {
             await processFiles(files);
+            // Reset input to prevent duplicate uploads on re-selection
+            e.target.value = '';
         }
     };
 

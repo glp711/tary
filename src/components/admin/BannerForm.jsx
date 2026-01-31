@@ -139,13 +139,13 @@ export default function BannerForm({ isOpen, banner, onSave, onClose }) {
                                     placeholder="Ex: /categoria/biquinis"
                                 />
                                 <div className="form-help-text" style={{ fontSize: '0.8rem', color: 'var(--gray-600)', marginTop: '0.5rem', background: 'var(--gray-50)', padding: '0.75rem', borderRadius: '4px' }}>
-                                    <strong style={{ display: 'block', marginBottom: '0.25rem' }}>Exemplos de Links:</strong>
+                                    <strong style={{ display: 'block', marginBottom: '0.25rem' }}>💡 Como usar o Link:</strong>
                                     <ul style={{ paddingLeft: '1.2rem', margin: 0 }}>
-                                        <li>Rolar para produtos: <code>#produtos</code> (Mais comum)</li>
-                                        <li>Rolar para novidades: <code>#novidades</code></li>
-                                        <li>Rolar para coleções: <code>#colecoes</code></li>
-                                        <li>Link externo: <code>https://instagram.com/tarymodapraia</code></li>
+                                        <li><strong>Filtrar por categoria:</strong> Digite o nome da categoria (ex: <code>Maiôs</code>, <code>Biquínis</code>, <code>Plus Size</code>)</li>
+                                        <li><strong>Rolar para seção:</strong> <code>#produtos</code>, <code>#novidades</code></li>
+                                        <li><strong>Link externo:</strong> <code>https://instagram.com/...</code></li>
                                     </ul>
+                                    <p style={{ margin: '0.5rem 0 0', fontStyle: 'italic' }}>✨ Ao usar o nome da categoria, o botão filtra e rola automaticamente!</p>
                                 </div>
                             </div>
                         </div>

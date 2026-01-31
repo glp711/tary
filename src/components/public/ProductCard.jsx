@@ -10,21 +10,18 @@ export default function ProductCard({ product, onClick }) {
         ? product.images
         : [PLACEHOLDER_IMAGE];
 
-    const handleMouseMove = (e) => {
-        if (images.length <= 1) return;
+    const hasMultipleImages = images.length > 1;
 
-        const rect = e.currentTarget.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const segmentWidth = rect.width / images.length;
-        const newIndex = Math.min(Math.floor(x / segmentWidth), images.length - 1);
-
-        if (newIndex !== currentImage) {
-            setCurrentImage(newIndex);
-        }
+    const handlePrevImage = (e) => {
+        e.stopPropagation();
+        e.preventDefault();
+        setCurrentImage(prev => prev > 0 ? prev - 1 : images.length - 1);
     };
 
-    const handleMouseLeave = () => {
-        setCurrentImage(0);
+    const handleNextImage = (e) => {
+        e.stopPropagation();
+        e.preventDefault();
+        setCurrentImage(prev => prev < images.length - 1 ? prev + 1 : 0);
     };
 
     return (
@@ -32,11 +29,7 @@ export default function ProductCard({ product, onClick }) {
             className="product-card"
             onClick={onClick}
         >
-            <div
-                className="product-image-container"
-                onMouseMove={handleMouseMove}
-                onMouseLeave={handleMouseLeave}
-            >
+            <div className="product-image-container">
                 <img
                     src={images[currentImage]}
                     alt={product.name}
@@ -45,6 +38,9 @@ export default function ProductCard({ product, onClick }) {
                 />
 
                 <div className="product-badges">
+                    {product.plusSize && (
+                        <span className="product-badge plussize">Plus Size</span>
+                    )}
                     {product.featured && (
                         <span className="product-badge featured">⭐ Destaque</span>
                     )}
@@ -56,6 +52,30 @@ export default function ProductCard({ product, onClick }) {
                 <div className="product-quick-view">
                     Ver Detalhes
                 </div>
+
+                {/* Navigation Arrows for multiple images */}
+                {hasMultipleImages && (
+                    <>
+                        <button
+                            className="product-nav-arrow product-nav-arrow-left"
+                            onClick={handlePrevImage}
+                            aria-label="Imagem anterior"
+                        >
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                <polyline points="15 18 9 12 15 6" />
+                            </svg>
+                        </button>
+                        <button
+                            className="product-nav-arrow product-nav-arrow-right"
+                            onClick={handleNextImage}
+                            aria-label="Próxima imagem"
+                        >
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                <polyline points="9 18 15 12 9 6" />
+                            </svg>
+                        </button>
+                    </>
+                )}
 
                 {images.length > 1 && (
                     <div className="product-gallery-dots">
@@ -79,3 +99,4 @@ export default function ProductCard({ product, onClick }) {
         </article>
     );
 }
+

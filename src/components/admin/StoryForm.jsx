@@ -153,11 +153,17 @@ export default function StoryForm({ isOpen, story, onSave, onClose }) {
                                 className="form-input"
                                 value={formData.link}
                                 onChange={handleChange}
-                                placeholder="Ex: /produtos/novo"
+                                placeholder="Ex: Maiôs ou Biquínis"
                             />
-                            <p style={{ fontSize: '0.8rem', color: 'var(--gray-500)', marginTop: '0.25rem' }}>
-                                Aparecerá um botão "Ver Mais" no final dos stories.
-                            </p>
+                            <div style={{ fontSize: '0.8rem', color: 'var(--gray-600)', marginTop: '0.5rem', background: 'var(--gray-50)', padding: '0.75rem', borderRadius: '4px' }}>
+                                <strong style={{ display: 'block', marginBottom: '0.25rem' }}>💡 Como usar o Link:</strong>
+                                <ul style={{ paddingLeft: '1.2rem', margin: 0 }}>
+                                    <li><strong>Filtrar por categoria:</strong> Digite o nome (ex: <code>Maiôs</code>, <code>Biquínis</code>, <code>Plus Size</code>)</li>
+                                    <li><strong>Rolar para seção:</strong> <code>#produtos</code></li>
+                                    <li><strong>Link externo:</strong> <code>https://...</code></li>
+                                </ul>
+                                <p style={{ margin: '0.5rem 0 0', fontStyle: 'italic' }}>✨ Ao clicar em "Ver Mais", filtra e rola automaticamente!</p>
+                            </div>
                         </div>
 
                         <div className="form-row">

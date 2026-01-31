@@ -1,18 +1,5 @@
 import { useState } from 'react';
 
-const COLORS = [
-    { id: 'preto', name: 'Preto', hex: '#1f2937' },
-    { id: 'branco', name: 'Branco', hex: '#ffffff' },
-    { id: 'azul', name: 'Azul', hex: '#3182ce' },
-    { id: 'rosa', name: 'Rosa', hex: '#ec4899' },
-    { id: 'verde', name: 'Verde', hex: '#10b981' },
-    { id: 'vermelho', name: 'Vermelho', hex: '#ef4444' },
-    { id: 'laranja', name: 'Laranja', hex: '#f97316' },
-    { id: 'amarelo', name: 'Amarelo', hex: '#fbbf24' },
-    { id: 'roxo', name: 'Roxo', hex: '#8b5cf6' },
-    { id: 'marrom', name: 'Marrom', hex: '#92400e' },
-];
-
 const PRICE_RANGES = [
     { id: 'all', label: 'Todos os preços', min: 0, max: Infinity },
     { id: 'budget', label: 'Até R$ 100', min: 0, max: 100 },
@@ -33,13 +20,6 @@ const SORT_OPTIONS = [
 export default function ProductFilters({ onFilterChange, activeFilters }) {
     const [isExpanded, setIsExpanded] = useState(false);
 
-    const handleColorToggle = (colorId) => {
-        const newColors = activeFilters.colors.includes(colorId)
-            ? activeFilters.colors.filter(c => c !== colorId)
-            : [...activeFilters.colors, colorId];
-        onFilterChange({ ...activeFilters, colors: newColors });
-    };
-
     const handlePriceChange = (priceId) => {
         onFilterChange({ ...activeFilters, priceRange: priceId });
     };
@@ -48,23 +28,17 @@ export default function ProductFilters({ onFilterChange, activeFilters }) {
         onFilterChange({ ...activeFilters, sort: sortId });
     };
 
-    const handlePlusSizeToggle = () => {
-        onFilterChange({ ...activeFilters, plusSize: !activeFilters.plusSize });
-    };
+
 
     const clearFilters = () => {
         onFilterChange({
-            colors: [],
             priceRange: 'all',
-            sort: 'default',
-            plusSize: false
+            sort: 'default'
         });
     };
 
-    const hasActiveFilters = activeFilters.colors.length > 0 ||
-        activeFilters.priceRange !== 'all' ||
-        activeFilters.sort !== 'default' ||
-        activeFilters.plusSize;
+    const hasActiveFilters = activeFilters.priceRange !== 'all' ||
+        activeFilters.sort !== 'default';
 
     return (
         <div className="product-filters">
@@ -74,23 +48,10 @@ export default function ProductFilters({ onFilterChange, activeFilters }) {
                     onClick={() => setIsExpanded(!isExpanded)}
                 >
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6" />
+                        <path d="M12 2L16 6M12 2L8 6M12 2V14M12 22L16 18M12 22L8 18M12 22V10" />
                     </svg>
                     Filtros
-                    {hasActiveFilters && <span className="filters-badge">{activeFilters.colors.length + (activeFilters.priceRange !== 'all' ? 1 : 0) + (activeFilters.plusSize ? 1 : 0)}</span>}
-                </button>
-
-                <button
-                    className={`plussize-toggle-btn ${activeFilters.plusSize ? 'active' : ''}`}
-                    onClick={handlePlusSizeToggle}
-                >
-                    <span className="plussize-icon">👗</span>
-                    Plus Size
-                    {activeFilters.plusSize && (
-                        <svg className="check-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
-                            <path d="M20 6L9 17l-5-5" />
-                        </svg>
-                    )}
+                    {hasActiveFilters && <span className="filters-badge">{activeFilters.priceRange !== 'all' ? 1 : 0}</span>}
                 </button>
 
                 <select
@@ -105,30 +66,6 @@ export default function ProductFilters({ onFilterChange, activeFilters }) {
             </div>
 
             <div className={`filters-content ${isExpanded ? 'expanded' : ''}`}>
-                <div className="filter-group">
-                    <h4 className="filter-title">
-                        <span>🎨</span> Cor
-                    </h4>
-                    <div className="color-options">
-                        {COLORS.map(color => (
-                            <button
-                                key={color.id}
-                                className={`color-btn ${activeFilters.colors.includes(color.id) ? 'active' : ''}`}
-                                style={{ '--color': color.hex }}
-                                onClick={() => handleColorToggle(color.id)}
-                                title={color.name}
-                            >
-                                <span className="color-swatch" />
-                                {activeFilters.colors.includes(color.id) && (
-                                    <svg className="color-check" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
-                                        <path d="M20 6L9 17l-5-5" />
-                                    </svg>
-                                )}
-                            </button>
-                        ))}
-                    </div>
-                </div>
-
                 <div className="filter-group">
                     <h4 className="filter-title">
                         <span>💰</span> Faixa de Preço
@@ -159,4 +96,4 @@ export default function ProductFilters({ onFilterChange, activeFilters }) {
     );
 }
 
-export { COLORS, PRICE_RANGES, SORT_OPTIONS };
+export { PRICE_RANGES, SORT_OPTIONS };

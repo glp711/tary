@@ -7,7 +7,7 @@ import ProductModal from '../components/public/ProductModal';
 import ProductFilters from '../components/public/ProductFilters';
 import { PRICE_RANGES, SORT_OPTIONS } from '../components/public/ProductFilters';
 import Footer from '../components/public/Footer';
-import { getProducts, initializeSampleData, COLLECTIONS } from '../utils/storage';
+import { getProducts, initializeSampleData, COLLECTIONS, getCategoriesDB } from '../utils/storage';
 
 // Collection cover images
 const collectionImages = {
@@ -24,8 +24,8 @@ export default function Home() {
     const [modalOpen, setModalOpen] = useState(false);
     const [activeCollection, setActiveCollection] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
+    const [categories, setCategories] = useState([]);
     const [filters, setFilters] = useState({
-        colors: [],
         priceRange: 'all',
         sort: 'default',
         plusSize: false,
@@ -33,18 +33,28 @@ export default function Home() {
     });
 
     useEffect(() => {
-        const loadProducts = async () => {
+        const loadData = async () => {
             setIsLoading(true);
             try {
                 await initializeSampleData();
-                const data = await getProducts();
-                setProducts(data);
+                const [productsData, categoriesData] = await Promise.all([
+                    getProducts(),
+                    getCategoriesDB()
+                ]);
+                setProducts(productsData);
+                // Filter active categories and deduplicate by name
+                const uniqueCategories = categoriesData
+                    .filter(cat => cat.active !== false)
+                    .filter((cat, index, self) =>
+                        index === self.findIndex(c => c.name === cat.name)
+                    );
+                setCategories(uniqueCategories);
             } catch (error) {
-                console.error('Error loading products:', error);
+                console.error('Error loading data:', error);
             }
             setIsLoading(false);
         };
-        loadProducts();
+        loadData();
     }, []);
 
     const handleProductClick = (product) => {
@@ -68,30 +78,38 @@ export default function Home() {
     };
 
     const handleCategoryFromStory = (categoryFilter) => {
-        if (categoryFilter === 'plussize') {
-            setFilters(prev => ({ ...prev, plusSize: !prev.plusSize }));
-            // Scroll to products section
+        // Special handling for Plus Size (uses plusSize flag, not category)
+        if (categoryFilter.toLowerCase() === 'plussize' || categoryFilter.toLowerCase() === 'plus-size' || categoryFilter === 'Plus Size') {
+            setActiveCollection(null);
+            setFilters(prev => ({ ...prev, category: 'Plus Size' }));
             setTimeout(() => {
                 document.getElementById('produtos')?.scrollIntoView({ behavior: 'smooth' });
             }, 100);
-        } else if (categoryFilter === 'maios') {
-            // Filter by category "Maiôs"
+            return;
+        }
+
+        // Find matching category from loaded categories (case-insensitive)
+        const matchedCategory = categories.find(cat =>
+            cat.name.toLowerCase() === categoryFilter.toLowerCase() ||
+            cat.slug?.toLowerCase() === categoryFilter.toLowerCase()
+        );
+
+        if (matchedCategory) {
             setActiveCollection(null);
-            setFilters(prev => ({ ...prev, category: prev.category === 'Maiôs' ? null : 'Maiôs' }));
+            setFilters(prev => ({
+                ...prev,
+                category: prev.category === matchedCategory.name ? null : matchedCategory.name
+            }));
             setTimeout(() => {
                 document.getElementById('produtos')?.scrollIntoView({ behavior: 'smooth' });
             }, 100);
-        } else if (categoryFilter === 'bikinis') {
-            // Filter by category "Biquínis"
+        } else {
+            // Try direct category name match
             setActiveCollection(null);
-            setFilters(prev => ({ ...prev, category: prev.category === 'Biquínis' ? null : 'Biquínis' }));
-            setTimeout(() => {
-                document.getElementById('produtos')?.scrollIntoView({ behavior: 'smooth' });
-            }, 100);
-        } else if (categoryFilter === 'masculino') {
-            // Filter by category "Moda Masculina"
-            setActiveCollection(null);
-            setFilters(prev => ({ ...prev, category: prev.category === 'Moda Masculina' ? null : 'Moda Masculina' }));
+            setFilters(prev => ({
+                ...prev,
+                category: prev.category === categoryFilter ? null : categoryFilter
+            }));
             setTimeout(() => {
                 document.getElementById('produtos')?.scrollIntoView({ behavior: 'smooth' });
             }, 100);
@@ -111,21 +129,19 @@ export default function Home() {
     const applyFilters = (productList) => {
         let filtered = [...productList];
 
-        // Filter by color
-        if (filters.colors.length > 0) {
-            filtered = filtered.filter(p =>
-                p.colors && filters.colors.some(c => p.colors.includes(c))
-            );
-        }
-
-        // Filter by Plus Size
+        // Filter by Plus Size (from the toggle button in filters)
         if (filters.plusSize) {
             filtered = filtered.filter(p => p.plusSize === true);
         }
 
         // Filter by category
+        // Special handling for "Plus Size" category - use plusSize flag instead of category
         if (filters.category) {
-            filtered = filtered.filter(p => p.category === filters.category);
+            if (filters.category === 'Plus Size' || filters.category === 'plus-size') {
+                filtered = filtered.filter(p => p.plusSize === true);
+            } else {
+                filtered = filtered.filter(p => p.category === filters.category);
+            }
         }
 
         // Filter by price range
@@ -257,6 +273,30 @@ export default function Home() {
                             </button>
                         )}
                     </div>
+
+                    {/* Category Tabs */}
+                    {categories.length > 0 && (
+                        <div className="category-tabs">
+                            <button
+                                className={`category-tab ${!filters.category ? 'active' : ''}`}
+                                onClick={() => setFilters(prev => ({ ...prev, category: null }))}
+                            >
+                                Todos
+                            </button>
+                            {categories.map(cat => (
+                                <button
+                                    key={cat.id}
+                                    className={`category-tab ${filters.category === cat.name ? 'active' : ''}`}
+                                    onClick={() => setFilters(prev => ({
+                                        ...prev,
+                                        category: prev.category === cat.name ? null : cat.name
+                                    }))}
+                                >
+                                    {cat.name}
+                                </button>
+                            ))}
+                        </div>
+                    )}
 
                     <ProductFilters
                         onFilterChange={handleFilterChange}
