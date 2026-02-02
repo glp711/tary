@@ -31,7 +31,8 @@ export default function Home() {
         plusSize: false,
         category: null
     });
-    const [visibleCount, setVisibleCount] = useState(12);
+    const [currentPage, setCurrentPage] = useState(1);
+    const productsPerPage = 12;
 
     useEffect(() => {
         const loadData = async () => {
@@ -72,12 +73,12 @@ export default function Home() {
 
     const handleCollectionFilter = (collection) => {
         setActiveCollection(activeCollection === collection ? null : collection);
-        setVisibleCount(12);
+        setCurrentPage(1);
     };
 
     const handleFilterChange = (newFilters) => {
         setFilters(newFilters);
-        setVisibleCount(12);
+        setCurrentPage(1);
     };
 
     const handleCategoryFromStory = (categoryFilter) => {
@@ -310,26 +311,107 @@ export default function Home() {
                     {displayProducts.length > 0 ? (
                         <>
                             <div className="products-grid">
-                                {displayProducts.slice(0, visibleCount).map(product => (
-                                    <ProductCard
-                                        key={product.id}
-                                        product={product}
-                                        onClick={() => handleProductClick(product)}
-                                    />
-                                ))}
+                                {displayProducts
+                                    .slice((currentPage - 1) * productsPerPage, currentPage * productsPerPage)
+                                    .map(product => (
+                                        <ProductCard
+                                            key={product.id}
+                                            product={product}
+                                            onClick={() => handleProductClick(product)}
+                                        />
+                                    ))}
                             </div>
 
-                            {visibleCount < displayProducts.length && (
-                                <div style={{ textAlign: 'center', marginTop: '3rem' }}>
-                                    <button
-                                        className="btn btn-secondary"
-                                        onClick={() => setVisibleCount(prev => prev + 12)}
-                                        style={{ minWidth: '200px' }}
-                                    >
-                                        Ver Mais Produtos ({displayProducts.length - visibleCount} restantes)
-                                    </button>
-                                </div>
-                            )}
+                            {/* Pagination */}
+                            {displayProducts.length > productsPerPage && (() => {
+                                const totalPages = Math.ceil(displayProducts.length / productsPerPage);
+
+                                const handlePageChange = (page) => {
+                                    setCurrentPage(page);
+                                    document.getElementById('produtos')?.scrollIntoView({ behavior: 'smooth' });
+                                };
+
+                                // Generate page numbers with ellipsis
+                                const getPageNumbers = () => {
+                                    const pages = [];
+                                    const maxVisible = 5;
+
+                                    if (totalPages <= maxVisible + 2) {
+                                        // Show all pages
+                                        for (let i = 1; i <= totalPages; i++) {
+                                            pages.push(i);
+                                        }
+                                    } else {
+                                        // Always show first page
+                                        pages.push(1);
+
+                                        if (currentPage > 3) {
+                                            pages.push('...');
+                                        }
+
+                                        // Pages around current
+                                        const start = Math.max(2, currentPage - 1);
+                                        const end = Math.min(totalPages - 1, currentPage + 1);
+
+                                        for (let i = start; i <= end; i++) {
+                                            pages.push(i);
+                                        }
+
+                                        if (currentPage < totalPages - 2) {
+                                            pages.push('...');
+                                        }
+
+                                        // Always show last page
+                                        pages.push(totalPages);
+                                    }
+
+                                    return pages;
+                                };
+
+                                return (
+                                    <div className="pagination">
+                                        <button
+                                            className="pagination-btn pagination-arrow"
+                                            onClick={() => handlePageChange(currentPage - 1)}
+                                            disabled={currentPage === 1}
+                                            aria-label="Página anterior"
+                                        >
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                                <path d="M15 19l-7-7 7-7" />
+                                            </svg>
+                                        </button>
+
+                                        {getPageNumbers().map((page, index) => (
+                                            page === '...' ? (
+                                                <span key={`ellipsis-${index}`} className="pagination-ellipsis">...</span>
+                                            ) : (
+                                                <button
+                                                    key={page}
+                                                    className={`pagination-btn ${currentPage === page ? 'active' : ''} ${page > 2 && page < totalPages - 1 ? 'hide-mobile' : ''}`}
+                                                    onClick={() => handlePageChange(page)}
+                                                >
+                                                    {page}
+                                                </button>
+                                            )
+                                        ))}
+
+                                        <button
+                                            className="pagination-btn pagination-arrow"
+                                            onClick={() => handlePageChange(currentPage + 1)}
+                                            disabled={currentPage === totalPages}
+                                            aria-label="Próxima página"
+                                        >
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                                <path d="M9 5l7 7-7 7" />
+                                            </svg>
+                                        </button>
+
+                                        <span className="pagination-info">
+                                            {displayProducts.length} produtos
+                                        </span>
+                                    </div>
+                                );
+                            })()}
                         </>
                     ) : (
                         <div className="empty-state">
