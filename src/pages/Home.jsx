@@ -31,6 +31,7 @@ export default function Home() {
         plusSize: false,
         category: null
     });
+    const [visibleCount, setVisibleCount] = useState(12);
 
     useEffect(() => {
         const loadData = async () => {
@@ -71,10 +72,12 @@ export default function Home() {
 
     const handleCollectionFilter = (collection) => {
         setActiveCollection(activeCollection === collection ? null : collection);
+        setVisibleCount(12);
     };
 
     const handleFilterChange = (newFilters) => {
         setFilters(newFilters);
+        setVisibleCount(12);
     };
 
     const handleCategoryFromStory = (categoryFilter) => {
@@ -110,6 +113,7 @@ export default function Home() {
                 ...prev,
                 category: prev.category === categoryFilter ? null : categoryFilter
             }));
+            setVisibleCount(12);
             setTimeout(() => {
                 document.getElementById('produtos')?.scrollIntoView({ behavior: 'smooth' });
             }, 100);
@@ -304,15 +308,29 @@ export default function Home() {
                     />
 
                     {displayProducts.length > 0 ? (
-                        <div className="products-grid">
-                            {displayProducts.map(product => (
-                                <ProductCard
-                                    key={product.id}
-                                    product={product}
-                                    onClick={() => handleProductClick(product)}
-                                />
-                            ))}
-                        </div>
+                        <>
+                            <div className="products-grid">
+                                {displayProducts.slice(0, visibleCount).map(product => (
+                                    <ProductCard
+                                        key={product.id}
+                                        product={product}
+                                        onClick={() => handleProductClick(product)}
+                                    />
+                                ))}
+                            </div>
+
+                            {visibleCount < displayProducts.length && (
+                                <div style={{ textAlign: 'center', marginTop: '3rem' }}>
+                                    <button
+                                        className="btn btn-secondary"
+                                        onClick={() => setVisibleCount(prev => prev + 12)}
+                                        style={{ minWidth: '200px' }}
+                                    >
+                                        Ver Mais Produtos ({displayProducts.length - visibleCount} restantes)
+                                    </button>
+                                </div>
+                            )}
+                        </>
                     ) : (
                         <div className="empty-state">
                             <div className="empty-state-icon">👙</div>
@@ -365,21 +383,21 @@ export default function Home() {
             <section className="section about" id="sobre">
                 <div className="container about-content">
                     <img
-                        src="https://images.unsplash.com/photo-1506929562872-bb421503ef21?w=600&h=500&fit=crop"
-                        alt="Praia paradisíaca"
+                        src="/images/about-tary.jpg"
+                        alt="Tary Moda Praia"
                         className="about-image"
                     />
                     <div className="about-text">
                         <h2>Sobre a Tary Moda Praia</h2>
                         <p>
-                            Somos apaixonados por moda praia e acreditamos que toda mulher merece
-                            se sentir linda e confiante. Nossa coleção é pensada com carinho,
-                            combinando estilo, qualidade e conforto.
+                            As peças são pensadas para a mulher brasileira, que gosta de se sentir linda o tempo todo,
+                            que gosta de trabalhar o corpo sentindo-se confortável e valorizada. Nossas roupas não são
+                            para ficarem belas em manequins, mas no corpo de quem usa, e o corpo e o gosto da mulher
+                            brasileira são tão diversos quanto as nossas coleções.
                         </p>
                         <p>
-                            Cada peça é selecionada cuidadosamente para oferecer o melhor em
-                            tendências e modelagens que valorizam todos os tipos de corpo.
-                            Venha conhecer nossa coleção e encontre o biquíni perfeito para você!
+                            Nossas atendentes buscam entender e satisfazer o gosto da cliente, deixando-a à vontade
+                            para encontrar o que ela deseja, em um ambiente suave, tranquilo.
                         </p>
                         <a
                             href="https://api.whatsapp.com/send/?phone=5561994153460&text=Olá! Quero conhecer mais sobre a Tary Moda Praia.&type=phone_number&app_absent=0"
